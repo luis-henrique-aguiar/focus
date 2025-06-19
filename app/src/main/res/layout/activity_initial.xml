@@ -13,7 +13,7 @@
         android:id="@+id/title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins_bold_italic"
+        android:fontFamily="@font/poppins_semi_bold_italic"
         android:text="Bem-vindo(a) ao Focus"
         android:layout_marginTop="20dp"
         android:textColor="@color/white"
