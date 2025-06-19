@@ -1,0 +1,21 @@
+package io.github.luishenriqueaguiar.di
+
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import io.github.luishenriqueaguiar.data.repository.AuthRepositoryImpl
+import io.github.luishenriqueaguiar.domain.repository.AuthRepository
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class AppModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        authRepositoryImpl: AuthRepositoryImpl
+    ): AuthRepository
+
+}

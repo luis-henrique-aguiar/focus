@@ -4,8 +4,9 @@ import com.google.firebase.auth.FirebaseAuth
 import io.github.luishenriqueaguiar.domain.model.User
 import io.github.luishenriqueaguiar.domain.repository.AuthRepository
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class AuthRepositoryImpl : AuthRepository {
+class AuthRepositoryImpl @Inject constructor() : AuthRepository {
 
     private val firebaseAuth = FirebaseAuth.getInstance()
 

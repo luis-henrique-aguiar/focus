@@ -1,14 +1,25 @@
 package io.github.luishenriqueaguiar.ui.activities.register
 
 import androidx.lifecycle.ViewModel
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.database.database
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.luishenriqueaguiar.domain.usecase.RegisterUserUseCase
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class RegisterViewModel : ViewModel() {
-    private val firestore = Firebase.database
-    private val firebaseAuth = Firebase.auth
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
+    private val registerUserUseCase: RegisterUserUseCase
+) : ViewModel() {
 
+    fun onRegisterButtonClicked(email: String, password: String) {
+        viewModelScope.launch {
+            val registrationResult = registerUserUseCase(email, password)
+            registrationResult.onSuccess { user ->
 
+            }.onFailure { error ->
 
+            }
+        }
+    }
 }
