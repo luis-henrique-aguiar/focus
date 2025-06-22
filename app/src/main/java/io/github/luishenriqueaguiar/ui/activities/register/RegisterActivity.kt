@@ -62,15 +62,15 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         viewModel.confirmPasswordError.observe(this) { error ->
-            if (error != null) binding.inputConfirmPasswordContainer.error = error
+            binding.inputConfirmPasswordContainer.error = error
         }
 
         viewModel.emailError.observe(this) { error ->
-            if (error != null) binding.inputEmailContainer.error = error
+            binding.inputEmailContainer.error = error
         }
 
         viewModel.nameError.observe(this) { error ->
-            if (error != null) binding.inputNameContainer.error = error
+            binding.inputNameContainer.error = error
         }
 
         viewModel.generalError.observe(this) {  error ->
@@ -78,7 +78,7 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         viewModel.passwordError.observe(this) { error ->
-            if (error != null) binding.inputPasswordContainer.error = error
+            binding.inputPasswordContainer.error = error
         }
     }
 
