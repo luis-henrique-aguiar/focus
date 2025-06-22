@@ -5,7 +5,9 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.github.luishenriqueaguiar.data.repository.AuthRepositoryImpl
+import io.github.luishenriqueaguiar.data.repository.UserRepositoryImpl
 import io.github.luishenriqueaguiar.domain.repository.AuthRepository
+import io.github.luishenriqueaguiar.domain.repository.UserRepository
 import javax.inject.Singleton
 
 @Module
@@ -18,4 +20,9 @@ abstract class AppModule {
         authRepositoryImpl: AuthRepositoryImpl
     ): AuthRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(
+        userRepositoryImpl: UserRepositoryImpl
+    ): UserRepository
 }

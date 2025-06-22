@@ -45,23 +45,35 @@ android {
 }
 
 dependencies {
-    //Hilt
+    // Hilt (Correto)
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
 
+    // Firebase - Organizado com BoM
+    // 1. O BoM vem primeiro para gerenciar as versões de tudo que é do Firebase
+    implementation(platform(libs.firebase.bom))
+
+    // 2. Dependências do Firebase
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
+
+    // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(platform(libs.firebase.bom))
+
+    // Android Core & UI
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.firebase.auth)
+
+    // Credentials
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
-    implementation(libs.firebase.database)
+
+    // Testes
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -2,20 +2,26 @@ package io.github.luishenriqueaguiar.domain.usecase
 
 import io.github.luishenriqueaguiar.domain.model.User
 import io.github.luishenriqueaguiar.domain.repository.AuthRepository
+import io.github.luishenriqueaguiar.domain.repository.UserRepository
 import javax.inject.Inject
 
 class RegisterUserUseCase @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) {
-    suspend operator fun invoke(email: String, password: String): Result<User> {
-        if (password.length < 8) {
-            return Result.failure(Exception("A senha deve ter no mínimo 8 caracteres."))
+    suspend operator fun invoke(email: String, password: String, name: String): Result<User> {
+        val authResult = authRepository.createUser(email, password)
+        val createdAuthUser = authResult.getOrNull()
+
+        if (createdAuthUser == null) {
+            return Result.failure(authResult.exceptionOrNull() ?: Exception("Erro desconhecido na autenticação"))
         }
 
-        if (!email.contains("@")) {
-            return Result.failure(Exception("Formato de e-mail inválido."))
-        }
+        val userWithDetails = User(uid = createdAuthUser.uid, email = email, name = name, profilePhoto = null)
+        val databaseResult = userRepository.create(userWithDetails)
 
-        return authRepository.createUser(email, password)
+        return databaseResult.map {
+            userWithDetails
+        }
     }
 }
