@@ -6,8 +6,12 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
@@ -19,12 +23,14 @@ class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
     private val viewModel: RegisterViewModel by viewModels()
+    private lateinit var gallery: ActivityResultLauncher<PickVisualMediaRequest>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setupOnClickListeners()
+        setupGalleryPicker()
         setupTextWatchers()
         setupObservers()
     }
@@ -35,7 +41,6 @@ class RegisterActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 updateFunc(s.toString())
-                viewModel.clearInputErrors()
             }
         })
     }
@@ -45,6 +50,16 @@ class RegisterActivity : AppCompatActivity() {
         setupTextWatcher(binding.inputEmail) { viewModel.updateEmail(it) }
         setupTextWatcher(binding.inputPassword) { viewModel.updatePassword(it) }
         setupTextWatcher(binding.inputConfirmPassword) { viewModel.updateConfirmPassword(it) }
+    }
+
+    private fun setupGalleryPicker() {
+        gallery = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                viewModel.updateProfileImageUri(uri)
+            } else {
+                Toast.makeText(this, "Nenhuma foto selecionada", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun setupObservers() {
@@ -58,6 +73,12 @@ class RegisterActivity : AppCompatActivity() {
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
                 Toast.makeText(this, "Cadastro realizado com sucesso!", Toast.LENGTH_LONG).show()
                 finish()
+            }
+        }
+
+        viewModel.profileImageUri.observe(this) { uri ->
+            if (uri != null) {
+                Glide.with(this).load(uri).into(binding.profileImage)
             }
         }
 
@@ -90,6 +111,10 @@ class RegisterActivity : AppCompatActivity() {
 
         binding.registerButton.setOnClickListener {
             viewModel.onRegisterButtonClicked()
+        }
+
+        binding.profileImageContainer.setOnClickListener {
+            gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
     }
 }

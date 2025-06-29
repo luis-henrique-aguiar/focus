@@ -1,5 +1,6 @@
 package io.github.luishenriqueaguiar.ui.activities.register
 
+import android.net.Uri
 import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -45,23 +46,34 @@ class RegisterViewModel @Inject constructor(
     private val _registerSuccess = MutableLiveData(false)
     val registerSuccess: LiveData<Boolean> get() = _registerSuccess
 
+    private val _profileImageUri = MutableLiveData<Uri?>(null)
+    val profileImageUri: LiveData<Uri?> get() = _profileImageUri
+
     private val _generalError = MutableLiveData<String?>(null)
     val generalError: LiveData<String?> get() = _generalError
 
     fun updateEmail(email: String) {
         _email.value = email
+        _emailError.value = validateEmail(_email.value)
     }
 
     fun updateName(name: String) {
         _name.value = name
+        _nameError.value = validateName(_name.value)
     }
 
     fun updatePassword(password: String) {
         _password.value = password
+        _passwordError.value = validatePassword(_password.value)
     }
 
     fun updateConfirmPassword(confirmPassword: String) {
         _confirmPassword.value = confirmPassword
+        _confirmPasswordError.value = validateConfirmPassword(_password.value, _confirmPassword.value)
+    }
+
+    fun updateProfileImageUri(uri: Uri?) {
+        _profileImageUri.value = uri
     }
 
     fun onRegisterButtonClicked() {
@@ -71,7 +83,8 @@ class RegisterViewModel @Inject constructor(
                 val result = registerUserUseCase(
                     email = _email.value!!,
                     password = _password.value!!,
-                    name = _name.value!!
+                    name = _name.value!!,
+                    profileImageUri = _profileImageUri.value
                 )
                 result.onSuccess {
                     _isLoading.value = false
@@ -82,13 +95,6 @@ class RegisterViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    fun clearInputErrors() {
-        _emailError.value = null
-        _nameError.value = null
-        _passwordError.value = null
-        _confirmPasswordError.value = null
     }
 
     private fun validateFields(): Boolean {

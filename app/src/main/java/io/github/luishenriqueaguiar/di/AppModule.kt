@@ -5,8 +5,10 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.github.luishenriqueaguiar.data.repository.AuthRepositoryImpl
+import io.github.luishenriqueaguiar.data.repository.StorageRepositoryImpl
 import io.github.luishenriqueaguiar.data.repository.UserRepositoryImpl
 import io.github.luishenriqueaguiar.domain.repository.AuthRepository
+import io.github.luishenriqueaguiar.domain.repository.StorageRepository
 import io.github.luishenriqueaguiar.domain.repository.UserRepository
 import javax.inject.Singleton
 
@@ -25,4 +27,10 @@ abstract class AppModule {
     abstract fun bindUserRepository(
         userRepositoryImpl: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStorageRepository(
+        impl: StorageRepositoryImpl
+    ): StorageRepository
 }
