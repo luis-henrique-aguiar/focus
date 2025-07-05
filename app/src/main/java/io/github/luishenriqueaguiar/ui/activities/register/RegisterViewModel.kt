@@ -113,7 +113,7 @@ class RegisterViewModel @Inject constructor(
 
     private fun validateEmail(email: String?): String? {
         return when {
-            email == null || email.isBlank() -> "Preencha o campo de e-mail"
+            email.isNullOrBlank() -> "Preencha o campo de e-mail"
             !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "E-mail inválido"
             else -> null
         }
@@ -121,7 +121,7 @@ class RegisterViewModel @Inject constructor(
 
     private fun validateName(name: String?): String? {
         return when {
-            name == null || name.isBlank() -> "Preencha o campo de nome"
+            name.isNullOrBlank() -> "Preencha o campo de nome"
             !Regex("^[\\p{L}\\s-]+$").matches(name) -> "O nome deve conter apenas letras, espaços ou hífens"
             else -> null
         }
@@ -129,7 +129,7 @@ class RegisterViewModel @Inject constructor(
 
     private fun validatePassword(password: String?): String? {
         return when {
-            password == null || password.isBlank() -> "Preencha a senha"
+            password.isNullOrBlank() -> "Preencha a senha"
             password.length < 6 -> "A senha deve ter pelo menos 6 caracteres"
             else -> null
         }
@@ -137,7 +137,7 @@ class RegisterViewModel @Inject constructor(
 
     private fun validateConfirmPassword(password: String?, confirmPassword: String?): String? {
         return when {
-            confirmPassword == null || confirmPassword.isBlank() -> "Preencha o campo de confirmação de senha"
+            confirmPassword.isNullOrBlank() -> "Preencha o campo de confirmação de senha"
             confirmPassword != password -> "As senhas não são iguais"
             else -> null
         }

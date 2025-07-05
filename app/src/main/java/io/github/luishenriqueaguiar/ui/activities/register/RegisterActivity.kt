@@ -113,7 +113,7 @@ class RegisterActivity : AppCompatActivity() {
             viewModel.onRegisterButtonClicked()
         }
 
-        binding.profileImageContainer.setOnClickListener {
+        binding.editIcon.setOnClickListener {
             gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
     }
