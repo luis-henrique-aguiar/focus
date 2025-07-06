@@ -79,4 +79,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(libs.glide)
+    implementation(libs.androidx.fragment.ktx)
 }

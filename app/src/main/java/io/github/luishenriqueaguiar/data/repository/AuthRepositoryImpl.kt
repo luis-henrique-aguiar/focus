@@ -30,6 +30,14 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
         }
     }
 
+    override fun getCurrentUser(): User? {
+        val firebaseUser = firebaseAuth.currentUser
+
+        return firebaseUser?.let {
+            User(uid = it.uid, email = it.email, name = it.displayName, profilePhoto = it.photoUrl?.toString())
+        }
+    }
+
     override fun isLogged(): Boolean {
         return firebaseAuth.currentUser != null
     }
