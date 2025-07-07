@@ -6,7 +6,8 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.core.os.bundleOf
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
@@ -73,8 +74,13 @@ class NewSessionBottomSheet : BottomSheetDialogFragment() {
             }
         }
 
-        viewModel.success.observe(viewLifecycleOwner) { result ->
-            if (result) Snackbar.make(binding.root, "Sessão criada com sucesso.", Snackbar.LENGTH_LONG).show()
+        viewModel.navigateToFocusSession.observe(viewLifecycleOwner) { session ->
+            if (session != null) {
+                val resultBundle = bundleOf("sessionId" to session.id)
+                setFragmentResult("session_created_key", resultBundle)
+                dismiss()
+                viewModel.onNavigationHandled()
+            }
         }
     }
 

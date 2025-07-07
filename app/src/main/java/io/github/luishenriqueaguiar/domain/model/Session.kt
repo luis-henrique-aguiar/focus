@@ -2,15 +2,15 @@ package io.github.luishenriqueaguiar.domain.model
 
 import java.util.Date
 
-data class Session (
-    val id: String,
-    val userId: String,
-    val name: String,
-    val plannedStudyDurationInMinutes: Int,
-    val plannedBreakDurationInMinutes: Int,
-    val status: SessionStatus,
-    val startTime: Date?,
-    val endTime: Date?,
-    val actualStudyDurationInSeconds: Long,
-    val totalBreakDurationInSeconds: Long
+data class Session(
+    val id: String = "",
+    val userId: String = "",
+    val name: String = "",
+    val plannedStudyDurationInMinutes: Int = 0,
+    val plannedBreakDurationInMinutes: Int = 0,
+    val status: SessionStatus = SessionStatus.PLANNED,
+    val startTime: Date? = null,
+    val endTime: Date? = null,
+    val actualStudyDurationInSeconds: Long = 0L,
+    val totalBreakDurationInSeconds: Long = 0L
 )

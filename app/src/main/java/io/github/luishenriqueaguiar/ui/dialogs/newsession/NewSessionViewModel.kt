@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.luishenriqueaguiar.domain.model.Session
 import io.github.luishenriqueaguiar.domain.usecase.CreateNewSessionUseCase
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,8 +30,8 @@ class NewSessionViewModel @Inject constructor(
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    private val _success = MutableLiveData(false)
-    val success: LiveData<Boolean> get() = _success
+    private val _navigateToFocusSession = MutableLiveData<Session?>()
+    val navigateToFocusSession: LiveData<Session?> get() = _navigateToFocusSession
 
     private val _generalError = MutableLiveData<String?>(null)
     val generalError: LiveData<String?> get() = _generalError
@@ -48,6 +49,10 @@ class NewSessionViewModel @Inject constructor(
         _breakDurationInMinutes.value = duration.toInt()
     }
 
+    fun onNavigationHandled() {
+        _navigateToFocusSession.value = null
+    }
+
     fun onStartSessionClicked() {
         viewModelScope.launch {
             if (validateFields()) {
@@ -57,9 +62,9 @@ class NewSessionViewModel @Inject constructor(
                     plannedBreakDurationInMinutes = _breakDurationInMinutes.value!!,
                     plannedStudyDurationInMinutes = _focusDurationInMinutes.value!!
                 )
-                result.onSuccess {
+                result.onSuccess { newSession ->
                     _isLoading.value = false
-                    _success.value = true
+                    _navigateToFocusSession.value = newSession
                 }
                 result.onFailure { error ->
                     _isLoading.value = false
