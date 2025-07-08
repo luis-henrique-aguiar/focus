@@ -1,10 +1,12 @@
 package io.github.luishenriqueaguiar.ui.activities.focus
 
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.ActivityFocusSessionBinding
 
 @AndroidEntryPoint
@@ -26,7 +28,9 @@ class FocusSessionActivity : AppCompatActivity() {
         }
 
         viewModel.loadSession(sessionId)
+        setupOnClickListeners()
         setupObservers()
+        setupBackButtonHandler()
     }
 
     private fun setupObservers() {
@@ -37,5 +41,51 @@ class FocusSessionActivity : AppCompatActivity() {
         viewModel.timeDisplay.observe(this) { time ->
             binding.textTimer.text = time
         }
+
+        viewModel.isPlaying.observe(this) { isPlaying ->
+            val iconRes = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+            binding.buttonPlayPause.setIconResource(iconRes)
+        }
+
+        viewModel.progress.observe(this) { progress ->
+            binding.progressCircular.progress = progress
+        }
+
+        viewModel.sessionFinishedEvent.observe(this) { event ->
+            event?.let {
+                Snackbar.make(binding.root, "Sessão finalizada.", Snackbar.LENGTH_SHORT).show()
+                finish()
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                viewModel.onNavigationHandled()
+            }
+        }
+    }
+
+    private fun setupOnClickListeners() {
+        binding.buttonPlayPause.setOnClickListener {
+            viewModel.onPlayPauseClicked()
+        }
+
+        binding.buttonReset.setOnClickListener {
+            viewModel.onResetClicked()
+        }
+
+        binding.buttonStop.setOnClickListener {
+            viewModel.onStopClicked()
+        }
+
+        binding.arrowBack.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    private fun setupBackButtonHandler() {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                viewModel.onStopClicked()
+            }
+        }
+
+        onBackPressedDispatcher.addCallback(this, callback)
     }
 }
