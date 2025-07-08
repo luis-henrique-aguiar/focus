@@ -11,7 +11,6 @@ class CreateNewSessionUseCase @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val authRepository: AuthRepository
 ) {
-
     suspend operator fun invoke(
         name: String,
         plannedStudyDurationInMinutes: Int,

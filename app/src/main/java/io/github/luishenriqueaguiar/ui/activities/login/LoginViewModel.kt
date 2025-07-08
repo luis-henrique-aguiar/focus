@@ -5,6 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.luishenriqueaguiar.domain.usecase.LoginUseCase
 import kotlinx.coroutines.launch
@@ -38,17 +40,15 @@ class LoginViewModel @Inject constructor(
 
     fun updatePassword(password: String) {
         _password.value = password
-        _passwordError.value = validatePassword(password)
     }
 
     fun updateEmail(email: String) {
         _email.value = email
-        _emailError.value = validateEmail(email)
     }
 
     fun onLoginButtonClicked() {
-        viewModelScope.launch {
-            if (validateFields()) {
+        if (validateFields()) {
+            viewModelScope.launch {
                 _loading.value = true
                 val authResult = loginUseCase(email = _email.value!!, password = _password.value!!)
                 authResult.onSuccess {
@@ -57,7 +57,11 @@ class LoginViewModel @Inject constructor(
                 }
                 authResult.onFailure { error ->
                     _loading.value = false
-                    _generalError.value = error.message
+                    _generalError.value = when (error) {
+                        is FirebaseAuthInvalidCredentialsException -> "E-mail ou senha inválidos."
+                        is FirebaseAuthInvalidUserException -> "Usuário não encontrado."
+                        else -> "Ocorreu um erro. Tente novamente."
+                    }
                 }
             }
         }
@@ -65,7 +69,10 @@ class LoginViewModel @Inject constructor(
 
     private fun validateFields(): Boolean {
         val emailResult = validateEmail(_email.value)
+        _emailError.value = emailResult
+
         val passwordResult = validatePassword(_password.value)
+        _passwordError.value = passwordResult
 
         return emailResult == null && passwordResult == null
     }

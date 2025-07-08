@@ -41,5 +41,4 @@ class MainViewModel @Inject constructor(
             _inProgressSession.value = null
         }
     }
-
 }
