@@ -10,4 +10,6 @@ interface SessionRepository {
 
     suspend fun update(id: String, session: Session): Result<Session>
 
+    suspend fun getInProgressSession(): Result<Session?>
+
 }

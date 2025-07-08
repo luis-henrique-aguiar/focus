@@ -1,6 +1,7 @@
 package io.github.luishenriqueaguiar.ui.activities.focus
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -53,7 +54,7 @@ class FocusSessionActivity : AppCompatActivity() {
 
         viewModel.sessionFinishedEvent.observe(this) { event ->
             event?.let {
-                Snackbar.make(binding.root, "Sessão finalizada.", Snackbar.LENGTH_SHORT).show()
+                Toast.makeText(this, "Sessão finalizada.", Toast.LENGTH_SHORT).show()
                 finish()
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
                 viewModel.onNavigationHandled()

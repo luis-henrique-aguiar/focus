@@ -1,7 +1,9 @@
 package io.github.luishenriqueaguiar.data.repository
 
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import io.github.luishenriqueaguiar.domain.model.Session
+import io.github.luishenriqueaguiar.domain.model.SessionStatus
 import io.github.luishenriqueaguiar.domain.repository.SessionRepository
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -9,6 +11,7 @@ import javax.inject.Inject
 class SessionRepositoryImpl @Inject constructor() : SessionRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
 
     override suspend fun save(session: Session): Result<Session> {
         return try {
@@ -49,6 +52,27 @@ class SessionRepositoryImpl @Inject constructor() : SessionRepository {
                 .set(session)
                 .await()
             Result.success(session)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getInProgressSession(): Result<Session?> {
+        val userId = auth.currentUser?.uid ?: return Result.success(null)
+        return try {
+            val querySnapshot = firestore.collection("sessions")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("status", SessionStatus.IN_PROGRESS.name)
+                .limit(1)
+                .get()
+                .await()
+
+            if (querySnapshot.isEmpty) {
+                Result.success(null)
+            } else {
+                val session = querySnapshot.documents.first().toObject(Session::class.java)
+                Result.success(session)
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
