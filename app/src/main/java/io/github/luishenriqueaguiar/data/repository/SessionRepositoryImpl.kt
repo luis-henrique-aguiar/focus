@@ -96,11 +96,12 @@ class SessionRepositoryImpl @Inject constructor() : SessionRepository {
         }
     }
 
-    override suspend fun getSessionHistory(userId: String): Result<List<Session>> {
+    override suspend fun getSessionHistory(userId: String, fromDate: Date): Result<List<Session>> {
         return try {
             val querySnapshot = firestore.collection("sessions")
                 .whereEqualTo("userId", userId)
                 .whereIn("status", listOf(SessionStatus.COMPLETED.name, SessionStatus.ABANDONED.name))
+                .whereGreaterThanOrEqualTo("startTime", fromDate)
                 .orderBy("startTime", Query.Direction.DESCENDING)
                 .get()
                 .await()

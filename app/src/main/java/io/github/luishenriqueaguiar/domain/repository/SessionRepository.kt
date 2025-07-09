@@ -15,6 +15,6 @@ interface SessionRepository {
 
     suspend fun getSessionsForUser(userId: String, fromDate: Date, toDate: Date): Result<List<Session>>
 
-    suspend fun getSessionHistory(userId: String): Result<List<Session>>
+    suspend fun getSessionHistory(userId: String, fromDate: Date): Result<List<Session>>
 
 }

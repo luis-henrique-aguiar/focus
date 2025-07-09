@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.luishenriqueaguiar.domain.model.HistoryFilter
 import io.github.luishenriqueaguiar.domain.model.Session
 import io.github.luishenriqueaguiar.domain.usecase.GetSessionHistoryUseCase
 import kotlinx.coroutines.launch
@@ -21,14 +22,23 @@ class HistoryViewModel @Inject constructor(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
+    private var currentFilter = HistoryFilter.WEEK
+
     init {
         loadHistory()
+    }
+
+    fun onFilterSelected(filter: HistoryFilter) {
+        if (filter != currentFilter) {
+            currentFilter = filter
+            loadHistory()
+        }
     }
 
     private fun loadHistory() {
         _isLoading.value = true
         viewModelScope.launch {
-            getSessionHistoryUseCase()?.onSuccess { sessionList ->
+            getSessionHistoryUseCase(currentFilter)?.onSuccess { sessionList ->
                 _sessions.value = sessionList
             }?.onFailure {
             }

@@ -1,7 +1,6 @@
 package io.github.luishenriqueaguiar.ui.fragments.history
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,8 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.databinding.FragmentHistoryBinding
+import io.github.luishenriqueaguiar.domain.model.HistoryFilter
 import io.github.luishenriqueaguiar.ui.adapters.HistoryAdapter
-
+import io.github.luishenriqueaguiar.R
 @AndroidEntryPoint
 class HistoryFragment : Fragment() {
 
@@ -29,11 +29,23 @@ class HistoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupObservers()
+        setupFilterListeners()
     }
 
     private fun setupRecyclerView() {
         historyAdapter = HistoryAdapter()
         binding.recyclerViewHistory.adapter = historyAdapter
+    }
+
+    private fun setupFilterListeners() {
+        binding.chipGroupFilter.setOnCheckedStateChangeListener { group, checkedIds ->
+            val selectedFilter = when (checkedIds.firstOrNull()) {
+                R.id.chip_today -> HistoryFilter.TODAY
+                R.id.chip_month -> HistoryFilter.MONTH
+                else -> HistoryFilter.WEEK
+            }
+            viewModel.onFilterSelected(selectedFilter)
+        }
     }
 
     private fun setupObservers() {
