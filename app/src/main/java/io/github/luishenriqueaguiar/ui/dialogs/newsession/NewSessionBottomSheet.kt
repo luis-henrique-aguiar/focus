@@ -19,7 +19,6 @@ class NewSessionBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: DialogNewSessionBinding? = null
     private val binding get() = _binding!!
-
     private val viewModel: NewSessionViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {

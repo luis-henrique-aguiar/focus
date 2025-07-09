@@ -14,4 +14,8 @@ interface AuthRepository {
 
     fun logout()
 
+    suspend fun updateUserName(newName: String): Result<Unit>
+
+    suspend fun updateUserPhoto(newPhotoUrl: String): Result<Unit>
+
 }

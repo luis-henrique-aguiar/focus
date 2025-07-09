@@ -1,10 +1,13 @@
 package io.github.luishenriqueaguiar.data.repository
 
+import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.userProfileChangeRequest
 import io.github.luishenriqueaguiar.domain.model.User
 import io.github.luishenriqueaguiar.domain.repository.AuthRepository
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 class AuthRepositoryImpl @Inject constructor() : AuthRepository {
 
@@ -44,5 +47,31 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
 
     override fun logout() {
         firebaseAuth.signOut()
+    }
+
+    override suspend fun updateUserName(newName: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser!!
+            val profileUpdates = userProfileChangeRequest {
+                displayName = newName
+            }
+            user.updateProfile(profileUpdates).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateUserPhoto(newPhotoUrl: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser!!
+            val profileUpdates = userProfileChangeRequest {
+                photoUri = newPhotoUrl.toUri()
+            }
+            user.updateProfile(profileUpdates).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

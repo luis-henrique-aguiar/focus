@@ -2,15 +2,18 @@ package io.github.luishenriqueaguiar.ui.activities.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.ActivityMainBinding
 import io.github.luishenriqueaguiar.domain.model.Session
 import io.github.luishenriqueaguiar.ui.activities.focus.FocusSessionActivity
-import io.github.luishenriqueaguiar.ui.dialogs.newsession.NewSessionBottomSheet
+import io.github.luishenriqueaguiar.ui.fragments.dashboard.DashboardFragment
+import io.github.luishenriqueaguiar.ui.fragments.profile.ProfileFragment
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -22,15 +25,39 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupOnClickListeners()
-        setupFragmentResultListener()
+
+        if (savedInstanceState == null) {
+            replaceFragment(DashboardFragment())
+        }
+
+        setupBottomNavListener()
         setupObservers()
     }
 
-    private fun setupOnClickListeners() {
-        binding.buttonStartSession.setOnClickListener {
-            NewSessionBottomSheet().show(supportFragmentManager, NewSessionBottomSheet.TAG)
+    private fun setupBottomNavListener() {
+        binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_home -> {
+                    replaceFragment(DashboardFragment())
+                    true
+                }
+                R.id.nav_history -> {
+                    Toast.makeText(this, "Tela de Histórico em breve!", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                R.id.nav_profile -> {
+                    replaceFragment(ProfileFragment())
+                    true
+                }
+                else -> false
+            }
         }
+    }
+
+    private fun replaceFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.nav_host_fragment, fragment)
+            .commit()
     }
 
     private fun setupObservers() {
@@ -56,18 +83,5 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
             }
             .show()
-    }
-
-    private fun setupFragmentResultListener() {
-        supportFragmentManager.setFragmentResultListener("session_created_key", this) { requestKey, bundle ->
-            val sessionId = bundle.getString("sessionId")
-            if (sessionId != null) {
-                val intent = Intent(this, FocusSessionActivity::class.java).apply {
-                    putExtra("SESSION_ID_EXTRA", sessionId)
-                }
-                startActivity(intent)
-                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-            }
-        }
     }
 }
