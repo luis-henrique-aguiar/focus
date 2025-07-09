@@ -11,6 +11,7 @@ import io.github.luishenriqueaguiar.databinding.FragmentHistoryBinding
 import io.github.luishenriqueaguiar.domain.model.HistoryFilter
 import io.github.luishenriqueaguiar.ui.adapters.HistoryAdapter
 import io.github.luishenriqueaguiar.R
+
 @AndroidEntryPoint
 class HistoryFragment : Fragment() {
 

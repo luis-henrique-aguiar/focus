@@ -6,10 +6,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.luishenriqueaguiar.domain.model.FocusViolation
 import io.github.luishenriqueaguiar.domain.model.Session
 import io.github.luishenriqueaguiar.domain.model.SessionStatus
 import io.github.luishenriqueaguiar.domain.usecase.GetSessionByIdUseCase
+import io.github.luishenriqueaguiar.domain.usecase.MonitorFocusUseCase
 import io.github.luishenriqueaguiar.domain.usecase.UpdateSessionUseCase
+import io.github.luishenriqueaguiar.ui.utils.OneTimeEvent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -19,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class FocusSessionViewModel @Inject constructor(
     private val getSessionByIdUseCase: GetSessionByIdUseCase,
-    private val updateSessionUseCase: UpdateSessionUseCase
+    private val updateSessionUseCase: UpdateSessionUseCase,
+    private val monitorFocusUseCase: MonitorFocusUseCase
 ) : ViewModel() {
 
     private val _session = MutableLiveData<Session>()
@@ -34,11 +38,18 @@ class FocusSessionViewModel @Inject constructor(
     private val _sessionFinishedEvent = MutableLiveData<Unit?>()
     val sessionFinishedEvent: LiveData<Unit?> get() = _sessionFinishedEvent
 
+    private val _oneTimeEvent = MutableLiveData<OneTimeEvent?>()
+    val oneTimeEvent: LiveData<OneTimeEvent?> get() = _oneTimeEvent
+
     private var timerJob: Job? = null
     private var remainingTimeInMillis: Long = 0
 
     private val _timeDisplay = MutableLiveData("00:00")
     val timeDisplay: LiveData<String> get() = _timeDisplay
+
+    init {
+        observeFocusViolations()
+    }
 
     fun loadSession(sessionId: String) {
         viewModelScope.launch {
@@ -79,6 +90,30 @@ class FocusSessionViewModel @Inject constructor(
 
     fun onNavigationHandled() {
         _sessionFinishedEvent.value = null
+    }
+
+    fun onEventHandled() {
+        _oneTimeEvent.value = null
+    }
+
+    private fun observeFocusViolations() {
+        viewModelScope.launch {
+            monitorFocusUseCase.focusViolations.collect { violation ->
+                when (violation) {
+                    FocusViolation.PHONE_PLACED_FACE_DOWN -> {
+                        if (_isPlaying.value == false) {
+                            startTimer()
+                        }
+                    }
+                    FocusViolation.PHONE_MOVED, FocusViolation.PHONE_FLIPPED_UP -> {
+                        if (_isPlaying.value == true) {
+                            pauseTimer()
+                            _oneTimeEvent.value = OneTimeEvent.Vibrate
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun startTimer() {

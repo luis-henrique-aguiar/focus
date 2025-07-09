@@ -1,6 +1,12 @@
 package io.github.luishenriqueaguiar.ui.activities.focus
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
@@ -9,6 +15,7 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.ActivityFocusSessionBinding
+import io.github.luishenriqueaguiar.ui.utils.OneTimeEvent
 
 @AndroidEntryPoint
 class FocusSessionActivity : AppCompatActivity() {
@@ -59,6 +66,38 @@ class FocusSessionActivity : AppCompatActivity() {
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
                 viewModel.onNavigationHandled()
             }
+        }
+
+        viewModel.oneTimeEvent.observe(this) { event ->
+            event?.let {
+                when (it) {
+                    is OneTimeEvent.Vibrate -> {
+                        vibratePhone()
+                    }
+                }
+                viewModel.onEventHandled()
+            }
+        }
+    }
+
+    private fun vibratePhone() {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(VIBRATOR_SERVICE) as Vibrator
+        }
+
+        if (!vibrator.hasVibrator()) {
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(200)
         }
     }
 
