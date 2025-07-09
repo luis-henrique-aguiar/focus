@@ -8,6 +8,7 @@ import io.github.luishenriqueaguiar.domain.repository.AuthRepository
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.google.firebase.auth.EmailAuthProvider
 
 class AuthRepositoryImpl @Inject constructor() : AuthRepository {
 
@@ -73,5 +74,21 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun reauthenticate(password: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser!!
+            val credential = EmailAuthProvider.getCredential(user.email!!, password)
+            user.reauthenticate(credential).await()
+            Result.success(Unit)
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    override suspend fun updateUserPassword(newPassword: String): Result<Unit> {
+        return try {
+            firebaseAuth.currentUser!!.updatePassword(newPassword).await()
+            Result.success(Unit)
+        } catch (e: Exception) { Result.failure(e) }
     }
 }

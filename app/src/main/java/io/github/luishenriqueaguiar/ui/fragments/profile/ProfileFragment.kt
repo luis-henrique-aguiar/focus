@@ -18,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.FragmentProfileBinding
 import io.github.luishenriqueaguiar.ui.activities.initial.InitialActivity
+import io.github.luishenriqueaguiar.ui.activities.password.ChangePasswordActivity
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -62,7 +63,9 @@ class ProfileFragment : Fragment() {
         }
 
         binding.buttonChangePassword.setOnClickListener {
-            Toast.makeText(requireContext(), "Tela de Alterar Senha em breve!", Toast.LENGTH_SHORT).show()
+            val intent = Intent(requireActivity(), ChangePasswordActivity::class.java)
+            startActivity(intent)
+            requireActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
         }
     }
 

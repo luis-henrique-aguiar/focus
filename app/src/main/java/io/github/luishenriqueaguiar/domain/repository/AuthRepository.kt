@@ -18,4 +18,8 @@ interface AuthRepository {
 
     suspend fun updateUserPhoto(newPhotoUrl: String): Result<Unit>
 
+    suspend fun reauthenticate(password: String): Result<Unit>
+
+    suspend fun updateUserPassword(newPassword: String): Result<Unit>
+
 }
