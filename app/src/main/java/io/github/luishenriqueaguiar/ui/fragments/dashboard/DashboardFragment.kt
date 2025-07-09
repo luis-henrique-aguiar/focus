@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.FragmentDashboardBinding
@@ -27,7 +28,6 @@ class DashboardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupClickListeners()
         setupFragmentResultListener()
         setupDashboardObservers()
@@ -42,6 +42,26 @@ class DashboardFragment : Fragment() {
     private fun setupDashboardObservers() {
         viewModel.greetingText.observe(viewLifecycleOwner) { greeting ->
             binding.textGreeting.text = greeting
+        }
+
+        viewModel.user.observe(viewLifecycleOwner) { user ->
+            Glide.with(this)
+                .load(user?.profilePhoto)
+                .placeholder(R.drawable.user_empty)
+                .error(R.drawable.user_empty)
+                .into(binding.profileImage)
+        }
+
+        viewModel.todayStatsText.observe(viewLifecycleOwner) { stats ->
+            binding.textStatsToday.text = stats
+        }
+
+        viewModel.weeklyStreakText.observe(viewLifecycleOwner) { stats ->
+            binding.textStatsStreak.text = stats
+        }
+
+        viewModel.weeklyAverageText.observe(viewLifecycleOwner) { stats ->
+            binding.textStatsAverage.text = stats
         }
     }
 

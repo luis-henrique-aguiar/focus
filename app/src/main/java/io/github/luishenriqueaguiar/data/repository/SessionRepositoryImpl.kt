@@ -6,6 +6,7 @@ import io.github.luishenriqueaguiar.domain.model.Session
 import io.github.luishenriqueaguiar.domain.model.SessionStatus
 import io.github.luishenriqueaguiar.domain.repository.SessionRepository
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 import javax.inject.Inject
 
 class SessionRepositoryImpl @Inject constructor() : SessionRepository {
@@ -73,6 +74,22 @@ class SessionRepositoryImpl @Inject constructor() : SessionRepository {
                 val session = querySnapshot.documents.first().toObject(Session::class.java)
                 Result.success(session)
             }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getSessionsForUser(userId: String, fromDate: Date, toDate: Date): Result<List<Session>> {
+        return try {
+            val querySnapshot = firestore.collection("sessions")
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("startTime", fromDate)
+                .whereLessThanOrEqualTo("startTime", toDate)
+                .get()
+                .await()
+
+            val sessions = querySnapshot.toObjects(Session::class.java)
+            Result.success(sessions)
         } catch (e: Exception) {
             Result.failure(e)
         }
