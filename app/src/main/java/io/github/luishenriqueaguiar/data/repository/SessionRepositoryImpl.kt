@@ -2,6 +2,7 @@ package io.github.luishenriqueaguiar.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import io.github.luishenriqueaguiar.domain.model.Session
 import io.github.luishenriqueaguiar.domain.model.SessionStatus
 import io.github.luishenriqueaguiar.domain.repository.SessionRepository
@@ -85,6 +86,22 @@ class SessionRepositoryImpl @Inject constructor() : SessionRepository {
                 .whereEqualTo("userId", userId)
                 .whereGreaterThanOrEqualTo("startTime", fromDate)
                 .whereLessThanOrEqualTo("startTime", toDate)
+                .get()
+                .await()
+
+            val sessions = querySnapshot.toObjects(Session::class.java)
+            Result.success(sessions)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getSessionHistory(userId: String): Result<List<Session>> {
+        return try {
+            val querySnapshot = firestore.collection("sessions")
+                .whereEqualTo("userId", userId)
+                .whereIn("status", listOf(SessionStatus.COMPLETED.name, SessionStatus.ABANDONED.name))
+                .orderBy("startTime", Query.Direction.DESCENDING)
                 .get()
                 .await()
 
