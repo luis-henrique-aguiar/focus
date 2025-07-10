@@ -12,7 +12,7 @@ class RegisterUserUseCase @Inject constructor(
     private val userRepository: UserRepository,
     private val storageRepository: StorageRepository
 ) {
-    suspend operator fun invoke(email: String, password: String, name: String, profileImageUri: Uri?): Result<User> {
+    suspend operator fun invoke(email: String, password: String, name: String, profileImageUri: Uri?): Result<Unit> {
         val authResult = authRepository.createUser(email, password)
         val createdAuthUser = authResult.getOrNull()
             ?: return Result.failure(authResult.exceptionOrNull()!!)
@@ -26,13 +26,17 @@ class RegisterUserUseCase @Inject constructor(
             }
         }
 
+        val updateProfileResult = authRepository.updateUserNameAndPhoto(name, profilePhotoUrl)
+        if (updateProfileResult.isFailure) {
+            return updateProfileResult
+        }
+
         val userWithDetails = User(
             uid = createdAuthUser.uid,
             email = email,
             name = name,
             profilePhoto = profilePhotoUrl
         )
-
-        return userRepository.create(userWithDetails)
+        return userRepository.createUserProfile(userWithDetails)
     }
 }

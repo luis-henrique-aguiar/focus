@@ -12,5 +12,7 @@ data class Session(
     val startTime: Date? = null,
     val endTime: Date? = null,
     val actualStudyDurationInSeconds: Long = 0L,
-    val totalBreakDurationInSeconds: Long = 0L
+    val totalBreakDurationInSeconds: Long = 0L,
+    val interruptionsCount: Int = 0,
+    val totalPauseDurationInSeconds: Long = 0L
 )

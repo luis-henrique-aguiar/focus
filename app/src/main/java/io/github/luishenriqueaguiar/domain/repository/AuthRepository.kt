@@ -22,4 +22,6 @@ interface AuthRepository {
 
     suspend fun updateUserPassword(newPassword: String): Result<Unit>
 
+    suspend fun updateUserNameAndPhoto(name: String, photoUrl: String?): Result<Unit>
+
 }

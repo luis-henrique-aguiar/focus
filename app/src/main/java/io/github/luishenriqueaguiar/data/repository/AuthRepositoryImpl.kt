@@ -91,4 +91,18 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
             Result.success(Unit)
         } catch (e: Exception) { Result.failure(e) }
     }
+
+    override suspend fun updateUserNameAndPhoto(name: String, photoUrl: String?): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser!!
+            val profileUpdates = userProfileChangeRequest {
+                displayName = name
+                photoUri = photoUrl?.let { Uri.parse(it) }
+            }
+            user.updateProfile(profileUpdates).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

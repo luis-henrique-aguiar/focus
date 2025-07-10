@@ -1,6 +1,5 @@
 package io.github.luishenriqueaguiar.ui.activities.focus
 
-import android.annotation.SuppressLint
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,6 +12,7 @@ import io.github.luishenriqueaguiar.domain.usecase.GetSessionByIdUseCase
 import io.github.luishenriqueaguiar.domain.usecase.MonitorFocusUseCase
 import io.github.luishenriqueaguiar.domain.usecase.UpdateSessionUseCase
 import io.github.luishenriqueaguiar.ui.utils.OneTimeEvent
+import io.github.luishenriqueaguiar.ui.utils.SessionEndEvent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -41,11 +41,17 @@ class FocusSessionViewModel @Inject constructor(
     private val _oneTimeEvent = MutableLiveData<OneTimeEvent?>()
     val oneTimeEvent: LiveData<OneTimeEvent?> get() = _oneTimeEvent
 
+    private val _sessionEndEvent = MutableLiveData<SessionEndEvent?>()
+    val sessionEndEvent: LiveData<SessionEndEvent?> get() = _sessionEndEvent
+
+    private var lastStartTime: Long = 0L
     private var timerJob: Job? = null
     private var remainingTimeInMillis: Long = 0
 
     private val _timeDisplay = MutableLiveData("00:00")
     val timeDisplay: LiveData<String> get() = _timeDisplay
+
+    private var pauseStartTimeInMillis: Long = 0L
 
     init {
         observeFocusViolations()
@@ -96,19 +102,22 @@ class FocusSessionViewModel @Inject constructor(
         _oneTimeEvent.value = null
     }
 
+    fun onNavigationToSummaryHandled() {
+        _sessionEndEvent.value = null
+    }
+
     private fun observeFocusViolations() {
         viewModelScope.launch {
             monitorFocusUseCase.focusViolations.collect { violation ->
                 when (violation) {
                     FocusViolation.PHONE_PLACED_FACE_DOWN -> {
-                        if (_isPlaying.value == false) {
-                            startTimer()
-                        }
+                        if (_isPlaying.value == false) { startTimer() }
                     }
                     FocusViolation.PHONE_MOVED, FocusViolation.PHONE_FLIPPED_UP -> {
-                        if (_isPlaying.value == true) {
+                        val timeSinceStart = System.currentTimeMillis() - lastStartTime
+                        if (_isPlaying.value == true && timeSinceStart > 2000) {
                             pauseTimer()
-                            _oneTimeEvent.value = OneTimeEvent.Vibrate
+                            _oneTimeEvent.value = OneTimeEvent.VibrateShort
                         }
                     }
                 }
@@ -118,6 +127,20 @@ class FocusSessionViewModel @Inject constructor(
 
     private fun startTimer() {
         _isPlaying.value = true
+        lastStartTime = System.currentTimeMillis()
+
+        if (pauseStartTimeInMillis > 0L) {
+            val pauseDuration = System.currentTimeMillis() - pauseStartTimeInMillis
+            val currentSession = _session.value
+            currentSession?.let {
+                val updatedSession = it.copy(
+                    totalPauseDurationInSeconds = it.totalPauseDurationInSeconds + (pauseDuration / 1000)
+                )
+                _session.value = updatedSession
+            }
+            pauseStartTimeInMillis = 0L
+        }
+
         if (_session.value?.status == SessionStatus.PLANNED) {
             updateSessionStatus(SessionStatus.IN_PROGRESS, startTime = Date())
         }
@@ -129,29 +152,37 @@ class FocusSessionViewModel @Inject constructor(
 
             while (remainingTimeInMillis > 0) {
                 val elapsedTimeSincePlay = System.currentTimeMillis() - startTime
-
                 remainingTimeInMillis = timeOnPlay - elapsedTimeSincePlay
-
                 if (remainingTimeInMillis < 0) remainingTimeInMillis = 0
-
                 updateTimerDisplay(remainingTimeInMillis)
                 updateProgressBar(remainingTimeInMillis, totalDuration)
-
                 delay(1000)
             }
-
             onSessionFinished()
         }
     }
 
     private fun pauseTimer() {
+        if (_isPlaying.value == false) return
+
         _isPlaying.value = false
         timerJob?.cancel()
+        pauseStartTimeInMillis = System.currentTimeMillis()
+
+        val currentSession = _session.value
+        currentSession?.let {
+            if (it.status == SessionStatus.IN_PROGRESS) {
+                val updatedSession = it.copy(interruptionsCount = it.interruptionsCount + 1)
+                _session.value = updatedSession
+            }
+        }
+
         updateSessionProgress()
     }
 
     private fun onSessionFinished() {
         _isPlaying.value = false
+        _oneTimeEvent.value = OneTimeEvent.VibrateLong
         updateSessionStatus(SessionStatus.COMPLETED, endTime = Date())
     }
 
@@ -181,7 +212,7 @@ class FocusSessionViewModel @Inject constructor(
             _session.value = updatedSession
 
             if (newStatus == SessionStatus.COMPLETED || newStatus == SessionStatus.ABANDONED) {
-                _sessionFinishedEvent.value = Unit
+                _sessionEndEvent.value = SessionEndEvent.NavigateToSummary(updatedSession.id)
             }
         }
     }

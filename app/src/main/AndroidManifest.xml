@@ -21,6 +21,9 @@
         android:theme="@style/Theme.Focus"
         tools:targetApi="31">
         <activity
+            android:name=".ui.activities.summary.SessionSummaryActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.activities.password.ChangePasswordActivity"
             android:exported="false" />
         <activity

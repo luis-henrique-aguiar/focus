@@ -1,6 +1,5 @@
 package io.github.luishenriqueaguiar.domain.usecase
 
-import android.util.Log
 import io.github.luishenriqueaguiar.domain.model.Session
 import io.github.luishenriqueaguiar.domain.repository.SessionRepository
 import javax.inject.Inject

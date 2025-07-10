@@ -1,7 +1,7 @@
 package io.github.luishenriqueaguiar.ui.activities.focus
 
-import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
@@ -15,7 +15,9 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.ActivityFocusSessionBinding
+import io.github.luishenriqueaguiar.ui.activities.summary.SessionSummaryActivity
 import io.github.luishenriqueaguiar.ui.utils.OneTimeEvent
+import io.github.luishenriqueaguiar.ui.utils.SessionEndEvent
 
 @AndroidEntryPoint
 class FocusSessionActivity : AppCompatActivity() {
@@ -71,33 +73,59 @@ class FocusSessionActivity : AppCompatActivity() {
         viewModel.oneTimeEvent.observe(this) { event ->
             event?.let {
                 when (it) {
-                    is OneTimeEvent.Vibrate -> {
-                        vibratePhone()
-                    }
+                    is OneTimeEvent.VibrateShort -> vibrateShort()
+                    is OneTimeEvent.VibrateLong -> vibrateLong()
                 }
                 viewModel.onEventHandled()
             }
         }
+
+        viewModel.sessionEndEvent.observe(this) { event ->
+            event?.let {
+                when (it) {
+                    is SessionEndEvent.NavigateToSummary -> {
+                        val intent = Intent(this, SessionSummaryActivity::class.java).apply {
+                            putExtra("SESSION_ID_EXTRA", it.sessionId)
+                        }
+                        startActivity(intent)
+                        finish()
+                    }
+                }
+                viewModel.onNavigationToSummaryHandled()
+            }
+        }
     }
 
-    private fun vibratePhone() {
-        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    private fun vibrateShort() {
+        val vibrator = getVibratorService()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(300, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(300)
+        }
+    }
+
+    private fun vibrateLong() {
+        val vibrator = getVibratorService()
+        // Padrão: vibra por 500ms, pausa por 200ms, vibra por 400ms
+        val pattern = longArrayOf(0, 500, 200, 500)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(pattern, -1)
+        }
+    }
+
+    private fun getVibratorService(): Vibrator {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
             vibratorManager.defaultVibrator
         } else {
             @Suppress("DEPRECATION")
             getSystemService(VIBRATOR_SERVICE) as Vibrator
-        }
-
-        if (!vibrator.hasVibrator()) {
-            return
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(200)
         }
     }
 
