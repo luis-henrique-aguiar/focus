@@ -39,7 +39,8 @@ class UserRepositoryImpl @Inject constructor() : UserRepository {
     override suspend fun updateUserPhoto(newPhotoUrl: String): Result<Unit> {
         return try {
             val userId = auth.currentUser?.uid!!
-            firestore.collection("users").document(userId)
+            firestore.collection("users")
+                .document(userId)
                 .update("profilePhoto", newPhotoUrl)
                 .await()
             Result.success(Unit)

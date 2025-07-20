@@ -10,6 +10,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.ActivityMainBinding
 import io.github.luishenriqueaguiar.domain.model.Session
+import io.github.luishenriqueaguiar.services.FocusTimerService
 import io.github.luishenriqueaguiar.ui.activities.focus.FocusSessionActivity
 import io.github.luishenriqueaguiar.ui.fragments.dashboard.DashboardFragment
 import io.github.luishenriqueaguiar.ui.fragments.history.HistoryFragment
@@ -73,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             .setCancelable(false)
             .setPositiveButton("Continuar") { dialog, _ ->
                 val intent = Intent(this, FocusSessionActivity::class.java).apply {
-                    putExtra("SESSION_ID_EXTRA", session.id)
+                    putExtra(FocusTimerService.EXTRA_SESSION_ID, session.id)
                 }
                 startActivity(intent)
                 dialog.dismiss()
