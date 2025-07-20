@@ -2,11 +2,10 @@ package io.github.luishenriqueaguiar.ui.activities.password
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.ActivityChangePasswordBinding
 
 @AndroidEntryPoint
@@ -47,10 +46,10 @@ class ChangePasswordActivity : AppCompatActivity() {
 
         viewModel.updateResult.observe(this) { result ->
             result.onSuccess {
-                Toast.makeText(this, "Senha alterada com sucesso!", Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "Senha alterada com sucesso!", Snackbar.LENGTH_LONG).show()
                 finish()
             }.onFailure { error ->
-                Toast.makeText(this, "Falha: ${error.message}", Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "Falha: ${error.message}", Snackbar.LENGTH_LONG).show()
             }
         }
     }

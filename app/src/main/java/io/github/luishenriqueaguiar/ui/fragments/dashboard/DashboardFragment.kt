@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.FragmentDashboardBinding
+import io.github.luishenriqueaguiar.services.FocusTimerService
 import io.github.luishenriqueaguiar.ui.activities.focus.FocusSessionActivity
 import io.github.luishenriqueaguiar.ui.dialogs.newsession.NewSessionBottomSheet
 
@@ -56,10 +57,6 @@ class DashboardFragment : Fragment() {
             binding.textStatsToday.text = stats
         }
 
-        viewModel.weeklyStreakText.observe(viewLifecycleOwner) { stats ->
-            binding.textStatsStreak.text = stats
-        }
-
         viewModel.weeklyAverageText.observe(viewLifecycleOwner) { stats ->
             binding.textStatsAverage.text = stats
         }
@@ -67,10 +64,11 @@ class DashboardFragment : Fragment() {
 
     private fun setupFragmentResultListener() {
         childFragmentManager.setFragmentResultListener("session_created_key", this) { _, bundle ->
-            val sessionId = bundle.getString("sessionId")
+            val sessionId = bundle.getString(FocusTimerService.EXTRA_SESSION_ID)
+
             if (sessionId != null) {
                 val intent = Intent(requireActivity(), FocusSessionActivity::class.java).apply {
-                    putExtra("SESSION_ID_EXTRA", sessionId)
+                    putExtra(FocusTimerService.EXTRA_SESSION_ID, sessionId)
                 }
                 startActivity(intent)
                 requireActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out)

@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
@@ -57,7 +58,7 @@ class RegisterActivity : AppCompatActivity() {
             if (uri != null) {
                 viewModel.updateProfileImageUri(uri)
             } else {
-                Toast.makeText(this, "Nenhuma foto selecionada", Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "Nenhuma foto selecionada", Snackbar.LENGTH_LONG).show()
             }
         }
     }
@@ -71,7 +72,7 @@ class RegisterActivity : AppCompatActivity() {
             if (success) {
                 startActivity(Intent(this, MainActivity::class.java))
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-                Toast.makeText(this, "Cadastro realizado com sucesso!", Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "Cadastro realizado com sucesso!", Snackbar.LENGTH_LONG).show()
                 finish()
             }
         }

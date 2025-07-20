@@ -6,6 +6,9 @@ import com.google.firebase.firestore.Query
 import io.github.luishenriqueaguiar.domain.model.Session
 import io.github.luishenriqueaguiar.domain.model.SessionStatus
 import io.github.luishenriqueaguiar.domain.repository.SessionRepository
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -111,5 +114,23 @@ class SessionRepositoryImpl @Inject constructor() : SessionRepository {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override fun getSessionFlow(sessionId: String): Flow<Session?> = callbackFlow {
+        val docRef = firestore.collection("sessions").document(sessionId)
+
+        val subscription = docRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            if (snapshot != null && snapshot.exists()) {
+                trySend(snapshot.toObject(Session::class.java))
+            } else {
+                trySend(null)
+            }
+        }
+
+        awaitClose { subscription.remove() }
     }
 }

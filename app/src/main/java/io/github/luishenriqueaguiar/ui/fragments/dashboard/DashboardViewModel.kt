@@ -27,9 +27,6 @@ class DashboardViewModel @Inject constructor(
     private val _todayStatsText = MutableLiveData("Tempo focado hoje: 0m")
     val todayStatsText: LiveData<String> get() = _todayStatsText
 
-    private val _weeklyStreakText = MutableLiveData("Sequência atual: 0 dias")
-    val weeklyStreakText: LiveData<String> get() = _weeklyStreakText
-
     private val _weeklyAverageText = MutableLiveData("Média diária: 0m")
     val weeklyAverageText: LiveData<String> get() = _weeklyAverageText
 
@@ -46,15 +43,6 @@ class DashboardViewModel @Inject constructor(
             getDashboardStatsUseCase().onSuccess { stats ->
                 val todayMinutes = stats.totalFocusTimeTodayInSeconds / 60
                 _todayStatsText.value = "Tempo focado hoje: ${todayMinutes}m"
-
-                _weeklyStreakText.value = "Sequência atual: 🔥 ${stats.currentStreakInDays} dias"
-
-                val weeklyAverageMinutes = if (stats.currentStreakInDays > 0) {
-                    (stats.totalFocusTimeWeekInSeconds / stats.currentStreakInDays) / 60
-                } else {
-                    0
-                }
-                _weeklyAverageText.value = "Média diária: ${weeklyAverageMinutes}m"
             }
         }
     }

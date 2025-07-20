@@ -17,7 +17,6 @@ class HistoryFragment : Fragment() {
 
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
-
     private val viewModel: HistoryViewModel by viewModels()
     private lateinit var historyAdapter: HistoryAdapter
 

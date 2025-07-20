@@ -18,7 +18,6 @@ class LoginViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _email = MutableLiveData<String>()
-    val email: LiveData<String> get() = _email
 
     private val _emailError = MutableLiveData<String?>(null)
     val emailError: LiveData<String?> get() = _emailError

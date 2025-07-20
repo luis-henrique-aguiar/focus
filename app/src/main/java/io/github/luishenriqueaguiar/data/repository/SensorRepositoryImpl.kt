@@ -46,7 +46,6 @@ class SensorRepositoryImpl @Inject constructor(
                         lastX = x; lastY = y; lastZ = z
                     }
                     Sensor.TYPE_PROXIMITY -> {
-                        // O valor 0.0 geralmente significa que o sensor está coberto (virado para baixo)
                         if (event.values[0] == 0.0f) {
                             trySend(FocusViolation.PHONE_PLACED_FACE_DOWN)
                         } else {

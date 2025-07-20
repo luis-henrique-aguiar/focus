@@ -41,16 +41,9 @@ class GetDashboardStatsUseCase @Inject constructor(
 
         val weekTime = sessions.sumOf { it.actualStudyDurationInSeconds }
 
-        val distinctDays = sessions.mapNotNull { it.startTime }.map {
-            val cal = Calendar.getInstance()
-            cal.time = it
-            cal.get(Calendar.DAY_OF_YEAR)
-        }.toSet().size
-
         return DashboardStats(
             totalFocusTimeTodayInSeconds = todayTime,
             totalFocusTimeWeekInSeconds = weekTime,
-            currentStreakInDays = distinctDays
         )
     }
 }

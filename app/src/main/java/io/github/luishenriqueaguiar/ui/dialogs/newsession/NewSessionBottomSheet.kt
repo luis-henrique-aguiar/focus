@@ -13,6 +13,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.databinding.DialogNewSessionBinding
+import io.github.luishenriqueaguiar.services.FocusTimerService
 
 @AndroidEntryPoint
 class NewSessionBottomSheet : BottomSheetDialogFragment() {
@@ -75,7 +76,7 @@ class NewSessionBottomSheet : BottomSheetDialogFragment() {
 
         viewModel.navigateToFocusSession.observe(viewLifecycleOwner) { session ->
             if (session != null) {
-                val resultBundle = bundleOf("sessionId" to session.id)
+                val resultBundle = bundleOf(FocusTimerService.EXTRA_SESSION_ID to session.id)
                 setFragmentResult("session_created_key", resultBundle)
                 dismiss()
                 viewModel.onNavigationHandled()

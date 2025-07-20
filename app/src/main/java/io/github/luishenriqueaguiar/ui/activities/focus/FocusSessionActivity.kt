@@ -1,9 +1,12 @@
 package io.github.luishenriqueaguiar.ui.activities.focus
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -15,7 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.luishenriqueaguiar.R
 import io.github.luishenriqueaguiar.databinding.ActivityFocusSessionBinding
-import io.github.luishenriqueaguiar.ui.activities.summary.SessionSummaryActivity
+import io.github.luishenriqueaguiar.services.FocusTimerService
 import io.github.luishenriqueaguiar.ui.utils.OneTimeEvent
 import io.github.luishenriqueaguiar.ui.utils.SessionEndEvent
 
@@ -24,55 +27,69 @@ class FocusSessionActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityFocusSessionBinding
     private val viewModel: FocusSessionViewModel by viewModels()
+    private var sessionId: String? = null
+
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as FocusTimerService.FocusTimerBinder
+            viewModel.setService(binder.getService())
+        }
+        override fun onServiceDisconnected(name: ComponentName?) {
+            viewModel.setService(null)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Intent(this, FocusTimerService::class.java).also { intent ->
+            bindService(intent, connection, BIND_AUTO_CREATE)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unbindService(connection)
+        viewModel.setService(null)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFocusSessionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val sessionId = intent.getStringExtra("SESSION_ID_EXTRA")
+        sessionId = intent.getStringExtra(FocusTimerService.EXTRA_SESSION_ID)
         if (sessionId == null) {
-            Snackbar.make(binding.root, "Erro: ID da sessão não encontrado", Snackbar.LENGTH_LONG).show()
+            Toast.makeText(this, "Erro: ID da sessão não encontrado", Toast.LENGTH_LONG).show()
             finish()
             return
         }
 
-        viewModel.loadSession(sessionId)
-        setupOnClickListeners()
-        setupObservers()
+        viewModel.loadAndObserveSession(sessionId!!)
+
+        startFocusService()
+        setupListeners()
         setupBackButtonHandler()
+        setupObservers()
+
+        Snackbar.make(binding.root, "Vire o celular para baixo para iniciar a sessão.", Snackbar.LENGTH_LONG).show()
     }
 
     private fun setupObservers() {
-        viewModel.session.observe(this) { session ->
-            binding.textSessionTitle.text = session.name
-        }
-
-        viewModel.timeDisplay.observe(this) { time ->
-            binding.textTimer.text = time
-        }
-
-        viewModel.isPlaying.observe(this) { isPlaying ->
-            val iconRes = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+        viewModel.timerState.observe(this) { state ->
+            binding.textTimer.text = state.timeDisplay
+            binding.progressCircular.progress = state.progress
+            binding.buttonPlayPause.isEnabled = true
+            val iconRes = if (state.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
             binding.buttonPlayPause.setIconResource(iconRes)
         }
 
-        viewModel.progress.observe(this) { progress ->
-            binding.progressCircular.progress = progress
-        }
-
-        viewModel.sessionFinishedEvent.observe(this) { event ->
-            event?.let {
-                Toast.makeText(this, "Sessão finalizada.", Toast.LENGTH_SHORT).show()
-                finish()
-                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-                viewModel.onNavigationHandled()
-            }
+        viewModel.sessionName.observe(this) { name ->
+            binding.textSessionTitle.text = name
         }
 
         viewModel.oneTimeEvent.observe(this) { event ->
             event?.let {
-                when (it) {
+                when(it) {
                     is OneTimeEvent.VibrateShort -> vibrateShort()
                     is OneTimeEvent.VibrateLong -> vibrateLong()
                 }
@@ -83,63 +100,24 @@ class FocusSessionActivity : AppCompatActivity() {
         viewModel.sessionEndEvent.observe(this) { event ->
             event?.let {
                 when (it) {
-                    is SessionEndEvent.NavigateToSummary -> {
-                        val intent = Intent(this, SessionSummaryActivity::class.java).apply {
-                            putExtra("SESSION_ID_EXTRA", it.sessionId)
-                        }
-                        startActivity(intent)
+                    is SessionEndEvent.CloseScreen -> {
+                        Snackbar.make(binding.root, "Sessão finalizada.", Snackbar.LENGTH_SHORT).show()
                         finish()
                     }
                 }
-                viewModel.onNavigationToSummaryHandled()
+                viewModel.onNavigationHandled()
             }
         }
     }
 
-    private fun vibrateShort() {
-        val vibrator = getVibratorService()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(300, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(300)
-        }
-    }
-
-    private fun vibrateLong() {
-        val vibrator = getVibratorService()
-        // Padrão: vibra por 500ms, pausa por 200ms, vibra por 400ms
-        val pattern = longArrayOf(0, 500, 200, 500)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(pattern, -1)
-        }
-    }
-
-    private fun getVibratorService(): Vibrator {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vibratorManager.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            getSystemService(VIBRATOR_SERVICE) as Vibrator
-        }
-    }
-
-    private fun setupOnClickListeners() {
+    private fun setupListeners() {
         binding.buttonPlayPause.setOnClickListener {
             viewModel.onPlayPauseClicked()
         }
 
-        binding.buttonReset.setOnClickListener {
-            viewModel.onResetClicked()
-        }
-
         binding.buttonStop.setOnClickListener {
             viewModel.onStopClicked()
+            finish()
         }
 
         binding.arrowBack.setOnClickListener {
@@ -148,12 +126,40 @@ class FocusSessionActivity : AppCompatActivity() {
     }
 
     private fun setupBackButtonHandler() {
-        val callback = object : OnBackPressedCallback(true) {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 viewModel.onStopClicked()
+                finish()
             }
-        }
+        })
+    }
 
-        onBackPressedDispatcher.addCallback(this, callback)
+    private fun startFocusService() {
+        val serviceIntent = Intent(this, FocusTimerService::class.java).apply {
+            putExtra(FocusTimerService.EXTRA_SESSION_ID, sessionId)
+        }
+        startService(serviceIntent)
+    }
+
+    private fun vibrateShort() {
+        val vibrator = getVibratorService()
+        vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+    }
+
+    private fun vibrateLong() {
+        val vibrator = getVibratorService()
+        val pattern = longArrayOf(0, 400, 200, 400)
+        vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
+    }
+
+    private fun getVibratorService(): Vibrator {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager =
+                getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(VIBRATOR_SERVICE) as Vibrator
+        }
     }
 }
