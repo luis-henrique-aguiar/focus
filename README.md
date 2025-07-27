@@ -31,4 +31,6 @@ Toda a infraestrutura de dados e autenticação do aplicativo é gerenciada pelo
 
 Assista a uma demonstração completa do aplicativo em ação, mostrando o fluxo de cadastro, a criação de uma sessão de foco, a interação com os sensores e a visualização do perfil do usuário.
 
+**OBS:** O aplicativo exibe uma notificação fixa de sessão ativa (não é possível ver no vídeo)
+
 [ASSISTA](https://drive.google.com/file/d/1_zZt2pdf4MyT2vO-S2OZUz6jkbzOLST8/view?usp=sharing)
